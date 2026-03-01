@@ -36,7 +36,8 @@ namespace Futbol
 
         private int topX = 200;
         private int topY = 125;
-         
+        private int hedefTopX = 200;
+        private int hedefTopY = 125;
         public Form1(int evId, string evAd, string evRenk, int depId, string depAd, string depRenk)
         {
             InitializeComponent();
@@ -53,11 +54,24 @@ namespace Futbol
             macTimer.Interval = 1500;
             TakimlariKur();
             TaktikselDizilisiAyarla();
-            ArayuzuGuncelle();  
+            ArayuzuGuncelle();
 
             lstSpiker.Items.Add("DEV DERBİ BAŞLIYOR! İki takıma da başarılar...");
             lstSpiker.Items.Add($"{_evAd} ve {_depAd} sahaya çıkıyor!");
             lstSpiker.Items.Add("--------------------------------------------------");
+
+            // YENİ: EKRAN TİTREMESİNİ (FLICKERING) ÖNLEYEN SİHİRLİ KOD (Double Buffering)
+            typeof(Panel).InvokeMember("DoubleBuffered",
+                System.Reflection.BindingFlags.SetProperty |
+                System.Reflection.BindingFlags.Instance |
+                System.Reflection.BindingFlags.NonPublic,
+                null, pnlRadar, new object[] { true });
+
+            // Animasyon Timer'ımız
+            System.Windows.Forms.Timer animTimer = new System.Windows.Forms.Timer();
+            animTimer.Interval = 33; // Yaklaşık 30 FPS
+            animTimer.Tick += AnimTimer_Tick;
+            animTimer.Start();
         }
 
         private void TakimlariKur()
@@ -116,127 +130,59 @@ namespace Futbol
         }
 
         private void GolEfektiGoster(bool evSahibiMi)
-        { 
+        {
             macTimer.Stop();
 
             pnlGolEfekti.Visible = true;
-            pnlGolEfekti.BringToFront(); 
+            pnlGolEfekti.BringToFront();
 
             if (evSahibiMi)
             {
                 pnlGolEfekti.BackColor = Color.FromName(_evRenk);
-                if(evSahibiGol>deplasmanGol)
+                if (evSahibiGol > deplasmanGol)
                     lblGolMesaji.Text = $"GOOOOOL! \n{_evAd} \nÖNE GEÇTİ!";
-                else if(evSahibiGol==deplasmanGol)
-                    lblGolMesaji.Text = $"GOOOOOL! \n{_evAd} \nEŞİTİĞİ SAĞLADI!";
+                else if (evSahibiGol == deplasmanGol)
+                    lblGolMesaji.Text = $"GOOOOOL! \n{_evAd} \nEŞİTLİĞİ SAĞLADI!";
                 else
                     lblGolMesaji.Text = $"GOOOOOL! \n{_evAd} \nFARKI AZALTTI!";
+
                 if (System.IO.File.Exists(evSahibi.LogoYolu))
                     picGolLogo.ImageLocation = evSahibi.LogoYolu;
             }
             else
             {
                 pnlGolEfekti.BackColor = Color.FromName(_depRenk);
-                if(deplasmanGol>evSahibiGol)
+                if (deplasmanGol > evSahibiGol)
                     lblGolMesaji.Text = $"GOOOOOL! \n{_depAd} \nÖNE GEÇTİ!";
-                else if(deplasmanGol==evSahibiGol)
-                    lblGolMesaji.Text = $"GOOOOOL! \n{_depAd} \nEŞİTİĞİ SAĞLADI!";
-                else 
+                else if (deplasmanGol == evSahibiGol)
+                    lblGolMesaji.Text = $"GOOOOOL! \n{_depAd} \nEŞİTLİĞİ SAĞLADI!";
+                else
                     lblGolMesaji.Text = $"GOOOOOL! \n{_depAd} \nFARKI AZALTTI!";
+
                 if (System.IO.File.Exists(deplasman.LogoYolu))
                     picGolLogo.ImageLocation = deplasman.LogoYolu;
             }
 
             picGolLogo.SizeMode = PictureBoxSizeMode.Zoom;
-            golEfektTimer.Start(); 
+
+            // YENİ: Timer'ı koda zorla bağlıyoruz ve 2 saniye (2000 ms) sonra kapanmasını emrediyoruz
+            golEfektTimer.Interval = 2000;
+            golEfektTimer.Tick -= golEfektTimer_Tick; // Çift tetiklemeyi önlemek için önce sil
+            golEfektTimer.Tick += golEfektTimer_Tick; // Ve bağla!
+
+            golEfektTimer.Start();
         }
-         
         private void golEfektTimer_Tick(object sender, EventArgs e)
         {
             golEfektTimer.Stop();
             pnlGolEfekti.Visible = false;
-            macTimer.Start();  
-        }
 
-        private void SahayiGuncelle()
-        {
-            int w = pnlRadar.Width;
-            int h = pnlRadar.Height;
+            // Motoru başlat ve arayüzdeki butonun yazısını otomatik düzelt
+            btnOyna.Text = "Maçı Duraklat";
+            macTimer.Start();
 
-            // 1. TOPUN YERİNİ BELİRLE (Spikerin anlattığı bölgeye göre)
-            switch (topunYeri)
-            {
-                case SahaBolgesi.KendiCezaSahasi: topX = topEvSahibindeMi ? (int)(w * 0.15) : (int)(w * 0.85); break;
-                case SahaBolgesi.KendiYariSahamiz: topX = topEvSahibindeMi ? (int)(w * 0.30) : (int)(w * 0.70); break;
-                case SahaBolgesi.OrtaAlanMerkez: topX = w / 2; break;
-                case SahaBolgesi.RakipYariSaha: topX = topEvSahibindeMi ? (int)(w * 0.70) : (int)(w * 0.30); break;
-                case SahaBolgesi.RakipCezaSahasi: topX = topEvSahibindeMi ? (int)(w * 0.85) : (int)(w * 0.15); break;
-            }
-            topY = (h / 2) + new Random().Next(-40, 40); // Top biraz seker
-
-            // 2. HER OYUNCU İÇİN BAĞIMSIZ HEDEF BELİRLE
-            var tumOyuncular = new List<Futbolcu> {
-        evSahibi.Kaleci, evSahibi.SolBek, evSahibi.SolStoper, evSahibi.SagStoper, evSahibi.SagBek, evSahibi.DOS, evSahibi.MOS, evSahibi.OOS, evSahibi.SolKanat, evSahibi.SagKanat, evSahibi.Santrafor,
-        deplasman.Kaleci, deplasman.SolBek, deplasman.SolStoper, deplasman.SagStoper, deplasman.SagBek, deplasman.DOS, deplasman.MOS, deplasman.OOS, deplasman.SolKanat, deplasman.SagKanat, deplasman.Santrafor
-    };
-
-            foreach (var o in tumOyuncular)
-            {
-                if (o == null) continue;
-                 
-                bool benimTakimimHucumda = (evSahibi.KadroIceriyorMu(o) && topEvSahibindeMi) || (deplasman.KadroIceriyorMu(o) && !topEvSahibindeMi);
-
-                // MEVKİSEL YZ KARARLARI
-                if (o is Kaleci)
-                {
-                    // Kaleci evinde durur, çok az öne çıkar
-                    o.HedefX = o.BaseX;
-                    o.HedefY = o.BaseY;
-                }
-                else if (o is Defans)
-                {
-                    // Bekler çizgiden ileri koşar, Stoperler merkezde kalır ama biraz öne çıkar
-                    int itme = benimTakimimHucumda ? 60 : -20; // Ataktayken 60 birim öne çık
-                    int yon = evSahibi.KadroIceriyorMu(o) ? 1 : -1;
-                    o.HedefX = o.BaseX + (itme * yon);
-                    o.HedefY = o.BaseY; // Defans sağa sola çok sapmaz
-                }
-                else if (o is OrtaSaha)
-                {
-                    // Orta sahalar topu takip eder! (Top neredeyse o tarafa yaklaşırlar)
-                    int itme = benimTakimimHucumda ? 100 : -40;
-                    int yon = evSahibi.KadroIceriyorMu(o) ? 1 : -1;
-                    o.HedefX = o.BaseX + (itme * yon);
-
-                    // Topun Y eksenine (aşağı/yukarı) doğru biraz kayarlar (Topa pres)
-                    o.HedefY = o.BaseY + ((topY - o.BaseY) / 3);
-                }
-                else if (o is Forvet)
-                {
-                    // Forvetler gol arar, top rakip ceza sahasındaysa direkt ceza sahasına koşarlar
-                    int itme = benimTakimimHucumda ? 150 : 0;
-                    int yon = evSahibi.KadroIceriyorMu(o) ? 1 : -1;
-
-                    // Eğer kanat oyuncusuysa (SolKanat/SagKanat) Y ekseninde kendi çizgisinde kalır
-                    // Santrafor ise topun olduğu yere (X ve Y) koşturur.
-                    if (((Forvet)o).Rol == HucumTipi.Santrafor)
-                    {
-                        o.HedefX = o.BaseX + (itme * yon);
-                        o.HedefY = (topY + o.BaseY) / 2; // Topun hizasına girer
-                    }
-                    else
-                    {
-                        // Kanat oyuncusu çizgisinden yardırır
-                        o.HedefX = o.BaseX + (itme * yon);
-                        o.HedefY = o.BaseY;
-                    }
-                }
-
-                // 3. HEDEFE DOĞRU YÜRÜ (Animasyon Kısmı)
-                o.HedefeYuru();
-            }
-
-            pnlRadar.Invalidate();
+            // YENİ: O 1.5 saniyelik boşluğu beklemeden MAÇI ANINDA SANTRA İLE BAŞLAT!
+            macTimer_Tick(null, EventArgs.Empty);
         }
         private void TaktikselDizilisiAyarla()
         {
@@ -299,6 +245,184 @@ namespace Futbol
 
             // Santrafor
             Konumla(deplasman.Santrafor, 0.52, 0.50);
+        }
+
+        private void AnimTimer_Tick(object sender, EventArgs e)
+        {
+            // 1. Sarı Topun Kayarak İlerlemesi
+            int topHiz = 7;
+            if (topX < hedefTopX) topX += Math.Min(topHiz, hedefTopX - topX);
+            else if (topX > hedefTopX) topX -= Math.Min(topHiz, topX - hedefTopX);
+
+            if (topY < hedefTopY) topY += Math.Min(topHiz, hedefTopY - topY);
+            else if (topY > hedefTopY) topY -= Math.Min(topHiz, topY - hedefTopY);
+
+            // 2. Oyuncuların Kayarak İlerlemesi
+            var tumOyuncular = new List<Futbolcu> { evSahibi.Kaleci, evSahibi.SolBek, evSahibi.SolStoper, evSahibi.SagStoper, evSahibi.SagBek, evSahibi.DOS, evSahibi.MOS, evSahibi.OOS, evSahibi.SolKanat, evSahibi.SagKanat, evSahibi.Santrafor, deplasman.Kaleci, deplasman.SolBek, deplasman.SolStoper, deplasman.SagStoper, deplasman.SagBek, deplasman.DOS, deplasman.MOS, deplasman.OOS, deplasman.SolKanat, deplasman.SagKanat, deplasman.Santrafor };
+
+            foreach (var o in tumOyuncular)
+            {
+                if (o != null) o.HedefeYuru(); // abstract sınıftaki yürüme metodu
+            }
+
+            pnlRadar.Invalidate(); // Radarı saniyede 30 kez güncelliyoruz
+        }
+        private void HedefleriBelirle()
+        {
+            int w = pnlRadar.Width;
+            int h = pnlRadar.Height;
+            Random rnd = new Random();
+
+            // 1. TOPUN HEDEFİNİ BELİRLE (Y ekseni eklendi!)
+            switch (topunYeri)
+            {
+                case SahaBolgesi.KendiCezaSahasi:
+                    hedefTopX = topEvSahibindeMi ? (int)(w * 0.15) : (int)(w * 0.85);
+                    hedefTopY = (h / 2) + rnd.Next(-30, 30);
+                    break;
+                case SahaBolgesi.KendiYariSahamiz:
+                    hedefTopX = topEvSahibindeMi ? (int)(w * 0.30) : (int)(w * 0.70);
+                    hedefTopY = (h / 2) + rnd.Next(-60, 60);
+                    break;
+                case SahaBolgesi.OrtaAlanMerkez:
+                    hedefTopX = w / 2;
+                    hedefTopY = (h / 2) + rnd.Next(-60, 60);
+                    break;
+                case SahaBolgesi.RakipYariSaha:
+                    hedefTopX = topEvSahibindeMi ? (int)(w * 0.70) : (int)(w * 0.30);
+                    hedefTopY = (h / 2) + rnd.Next(-60, 60);
+                    break;
+                case SahaBolgesi.RakipCezaSahasi:
+                case SahaBolgesi.SerbestVurus:
+                    hedefTopX = topEvSahibindeMi ? (int)(w * 0.85) : (int)(w * 0.15);
+                    hedefTopY = (h / 2) + rnd.Next(-30, 30);
+                    break;
+                case SahaBolgesi.Korner:
+                    hedefTopX = topEvSahibindeMi ? (int)(w * 0.95) : (int)(w * 0.05);
+                    hedefTopY = rnd.Next(0, 2) == 0 ? 10 : h - 10; // En üst veya en alt köşe
+                    break;
+                case SahaBolgesi.Tac:
+                    hedefTopX = topEvSahibindeMi ? (int)(w * 0.55) : (int)(w * 0.45);
+                    hedefTopY = rnd.Next(0, 2) == 0 ? 10 : h - 10; // En üst veya en alt taç çizgisi
+                    break;
+            }
+
+            // 2. HER OYUNCU İÇİN BAĞIMSIZ HEDEF BELİRLE (Y ekseninde kayma eklendi!)
+            var tumOyuncular = new List<Futbolcu> { evSahibi.Kaleci, evSahibi.SolBek, evSahibi.SolStoper, evSahibi.SagStoper, evSahibi.SagBek, evSahibi.DOS, evSahibi.MOS, evSahibi.OOS, evSahibi.SolKanat, evSahibi.SagKanat, evSahibi.Santrafor, deplasman.Kaleci, deplasman.SolBek, deplasman.SolStoper, deplasman.SagStoper, deplasman.SagBek, deplasman.DOS, deplasman.MOS, deplasman.OOS, deplasman.SolKanat, deplasman.SagKanat, deplasman.Santrafor };
+
+            foreach (var o in tumOyuncular)
+            {
+                if (o == null) continue;
+                bool benimTakimimHucumda = (evSahibi.KadroIceriyorMu(o) && topEvSahibindeMi) || (deplasman.KadroIceriyorMu(o) && !topEvSahibindeMi);
+
+                // OYUNCULARIN TOPA DOĞRU YUKARI/AŞAĞI YÖNELMESİ (TAKTİĞİ BOZMADAN)
+                int yKayma = (hedefTopY - o.BaseY) / 4; 
+                if (topunYeri == SahaBolgesi.Korner)
+                {
+                    if (o is Kaleci)
+                    {
+                        o.HedefX = o.BaseX;
+                        o.HedefY = o.BaseY;
+                        continue;
+                    }
+
+                    int rakipCezaSahasiX = topEvSahibindeMi ? (int)(w * 0.85) : (int)(w * 0.15);
+                    int cezaSahasiYayiX = topEvSahibindeMi ? (int)(w * 0.70) : (int)(w * 0.30); // Dışarısı
+                    int ortaYusYuvarlak = w / 2;
+
+                    if (benimTakimimHucumda) // KORNERİ KULLANAN TAKIM
+                    {
+                        if (o == evSahibi.OOS || o == deplasman.OOS)
+                        {
+                            // 1. OOS topun başına (korner direğine) gider
+                            o.HedefX = hedefTopX;
+                            o.HedefY = hedefTopY;
+                        }
+                        else if (o == evSahibi.SolBek || o == deplasman.SolBek || o == evSahibi.SagBek || o == deplasman.SagBek)
+                        {
+                            // 2. İki Bek oyuncusu orta sahada kontratağı kesmek için kalır
+                            o.HedefX = ortaYusYuvarlak;
+                            o.HedefY = (o == evSahibi.SolBek || o == deplasman.SolBek) ? (h / 3) : (h * 2 / 3);
+                        }
+                        else if (o == evSahibi.DOS || o == deplasman.DOS)
+                        {
+                            // 3. DOS ceza sahası yayında (dışarıda) seken topu bekler
+                            o.HedefX = cezaSahasiYayiX;
+                            o.HedefY = h / 2;
+                        }
+                        else
+                        {
+                            // 4. Stoperler, Santrafor vs. hepsi ceza sahasına kafa vurmaya yığılır
+                            o.HedefX = rakipCezaSahasiX + rnd.Next(-10, 11);
+                            o.HedefY = (h / 2) + rnd.Next(-50, 51);
+                        }
+                    }
+                    else // KORNERİ SAVUNAN TAKIM
+                    {
+                        if (o == evSahibi.Santrafor || o == deplasman.Santrafor || o == evSahibi.OOS || o == deplasman.OOS)
+                        {
+                            // 1. Santrafor ve OOS ceza sahası dışında hızlı hücum (kontra) için bekler
+                            o.HedefX = cezaSahasiYayiX;
+                            o.HedefY = (o == evSahibi.Santrafor || o == deplasman.Santrafor) ? (h / 3) : (h * 2 / 3);
+                        }
+                        else
+                        {
+                            // 2. Geri kalan tüm takım ceza sahasına doluşur ve etten duvar örer
+                            o.HedefX = rakipCezaSahasiX + rnd.Next(-15, 16);
+                            o.HedefY = (h / 2) + rnd.Next(-50, 51);
+                        }
+                    }
+                    continue; // Korner dizilişi bitti, aşağıdaki normal oyun akışı kodlarına geçme!
+                }
+                if (o is Kaleci)
+                {
+                    o.HedefX = o.BaseX;
+                    o.HedefY = o.BaseY + (yKayma / 2); // Kaleci kalede kalır, topa göre çok hafif yanlara adım atar
+                }
+                else if (o is Defans)
+                {
+                    int itme = benimTakimimHucumda ? 60 : -20;
+                    int yon = evSahibi.KadroIceriyorMu(o) ? 1 : -1;
+
+                    // YENİ ZEKİ HAMLE: TAÇ ATIŞI KONTROLÜ
+                    if (topunYeri == SahaBolgesi.Tac && benimTakimimHucumda)
+                    {
+                        // Eğer oyuncunun orijinal yeri (BaseY) topun olduğu taç çizgisine yakınsa (Yani o kanadın beki ise)
+                        if (Math.Abs(hedefTopY - o.BaseY) < 150)
+                        {
+                            o.HedefX = hedefTopX; // Topun X'ine git
+                            o.HedefY = hedefTopY; // Topun Y'sine git (Çizgiye in)
+                            continue; // Aşağıdaki normal defans kayması kodunu atla
+                        }
+                    }
+
+                    // Taç değilse normal defans kaymasını yap
+                    o.HedefX = o.BaseX + (itme * yon);
+                    o.HedefY = o.BaseY + yKayma;
+                }
+                else if (o is OrtaSaha)
+                {
+                    int itme = benimTakimimHucumda ? 100 : -40;
+                    int yon = evSahibi.KadroIceriyorMu(o) ? 1 : -1;
+                    o.HedefX = o.BaseX + (itme * yon);
+                    o.HedefY = o.BaseY + (yKayma * 2); // Orta saha topa daha agresif pres yapar (yKayma çarpı 2)
+                }
+                else if (o is Forvet)
+                {
+                    int itme = benimTakimimHucumda ? 150 : 0;
+                    int yon = evSahibi.KadroIceriyorMu(o) ? 1 : -1;
+                    o.HedefX = o.BaseX + (itme * yon);
+
+                    if (((Forvet)o).Rol == HucumTipi.Santrafor)
+                    {
+                        o.HedefY = (hedefTopY + o.BaseY) / 2; // Santrafor topun tam hizasına girmeye çalışır
+                    }
+                    else
+                    {
+                        o.HedefY = o.BaseY + yKayma; // Kanatlar da içe veya dışa kat eder
+                    }
+                }
+            }
         }
     }
 }

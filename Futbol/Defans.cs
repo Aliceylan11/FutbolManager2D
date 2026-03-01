@@ -42,13 +42,12 @@ namespace Futbol
         public bool TacKullan(Futbolcu rakipBaski)
         {
             Random r = new Random();
-            double benimFormum = this.AnlikFormCarpani();
-            double rakipFormu = rakipBaski.AnlikFormCarpani();
+            int zar = r.Next(0, 10);  
+             
+            if (zar == 0 )
+                return false; 
 
-            int tacGucu = Convert.ToInt32((this.Pas * 0.5 + this.Guc * 0.3 + this.Vizyon * 0.2) * benimFormum);
-            int baskiGucu = Convert.ToInt32((rakipBaski.Agresiflik * 0.6 + rakipBaski.Hiz * 0.4) * rakipFormu);
-
-            return r.Next(0, tacGucu + baskiGucu) < tacGucu;
+            return true;
         }
     }
 }

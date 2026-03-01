@@ -17,44 +17,7 @@ namespace Futbol
             else if (o.SariKartVarMi) ikon = " 🟨";
 
             return $"{o.isim}{ikon} (%{o.Kondisyon})";
-        }
-
-        private void RadarKoordinatlariniBelirle()
-        {
-            Random rnd = new Random();
-            int rastgeleY = rnd.Next(20, 230);
-
-            switch (topunYeri)
-            {
-                case SahaBolgesi.KendiCezaSahasi:
-                    topX = topEvSahibindeMi ? 40 : 360;
-                    topY = 125;
-                    break;
-                case SahaBolgesi.KendiYariSahamiz:
-                    topX = topEvSahibindeMi ? 120 : 280;
-                    topY = rastgeleY;
-                    break;
-                case SahaBolgesi.OrtaAlanMerkez:
-                    topX = 200;
-                    topY = rastgeleY;
-                    break;
-                case SahaBolgesi.RakipYariSaha:
-                    topX = topEvSahibindeMi ? 280 : 120;
-                    topY = rastgeleY;
-                    break;
-                case SahaBolgesi.RakipCezaSahasi:
-                case SahaBolgesi.Korner:
-                case SahaBolgesi.SerbestVurus:
-                    topX = topEvSahibindeMi ? 360 : 40;
-                    topY = rnd.Next(50, 200);
-                    break;
-                case SahaBolgesi.Tac:
-                    topX = topEvSahibindeMi ? 220 : 180;
-                    topY = rnd.Next(0, 2) == 0 ? 10 : 240;
-                    break;
-            }
-        }
-
+        } 
         private void ArayuzuGuncelle()
         {
             if (uzatmaVerildiMi && dakika >= bitisDakikasi) return;
@@ -105,7 +68,7 @@ namespace Futbol
             listBox2.Items.Add("------------------");
             foreach (var yedek in deplasman.Yedekler) listBox2.Items.Add(IsmiVeKartiYaz(yedek));
 
-            RadarKoordinatlariniBelirle();
+            HedefleriBelirle();
             pnlRadar.Invalidate();
         }
  
@@ -184,26 +147,30 @@ namespace Futbol
             var kadro = new List<Futbolcu>() { t.Kaleci, t.SolBek, t.SolStoper, t.SagStoper, t.SagBek, t.DOS, t.MOS, t.OOS, t.SolKanat, t.SagKanat, t.Santrafor };
             if (t.Yedekler != null) kadro.AddRange(t.Yedekler);
             foreach (var o in kadro) { if (o == null) continue; if (o.KirmiziKartYediMi) kirmizilar.Add(o.isim); else if (o.SariKartVarMi) sarilar.Add(o.isim); }
-        } 
+        }
         private void GolOldu(string goluAtanIsim)
         {
             if (topEvSahibindeMi)
             {
                 evSahibiGol++;
                 evGoller.Add($"{goluAtanIsim} ({dakika}')");
-                GolEfektiGoster(true);  
+                GolEfektiGoster(true);
             }
             else
             {
                 deplasmanGol++;
                 depGoller.Add($"{goluAtanIsim} ({dakika}')");
-                GolEfektiGoster(false);  
+                GolEfektiGoster(false);
             }
              
             topEvSahibindeMi = !topEvSahibindeMi;
-            topunYeri = SahaBolgesi.KendiCezaSahasi;
+             
+            topunYeri = SahaBolgesi.OrtaAlanMerkez; 
+            TaktikselDizilisiAyarla();
+             
+            topX = pnlRadar.Width / 2;
+            topY = pnlRadar.Height / 2;
         }
-
         private void macTimer_Tick(object sender, EventArgs e)
         {
             if (macBittiMi) return;
@@ -422,7 +389,7 @@ namespace Futbol
                     else { lstSpiker.Items.Add($"{sStoper.isim} topu uzaklaştırdı."); topEvSahibindeMi = !topEvSahibindeMi; topunYeri = SahaBolgesi.KendiYariSahamiz; }
                     break;
             }
-            SahayiGuncelle();
+            HedefleriBelirle();
             ArayuzuGuncelle();
             lstSpiker.Items.Add("");
             lstSpiker.TopIndex = lstSpiker.Items.Count - 1;
