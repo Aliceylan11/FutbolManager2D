@@ -46,32 +46,39 @@
             lblGolMesaji = new Label();
             picGolLogo = new PictureBox();
             golEfektTimer = new System.Windows.Forms.Timer(components);
+            pcbEvLogo2 = new PictureBox();
+            pcbDepLogo2 = new PictureBox();
             pnlGolEfekti.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)picGolLogo).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)pcbEvLogo2).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)pcbDepLogo2).BeginInit();
             SuspendLayout();
             // 
             // lstSpiker
             // 
             lstSpiker.FormattingEnabled = true;
             lstSpiker.ItemHeight = 15;
-            lstSpiker.Location = new Point(45, 388);
+            lstSpiker.Location = new Point(68, 464);
             lstSpiker.Name = "lstSpiker";
-            lstSpiker.Size = new Size(482, 214);
+            lstSpiker.Size = new Size(493, 109);
             lstSpiker.TabIndex = 1;
             // 
             // lblEvSahibiAd
             // 
             lblEvSahibiAd.AutoSize = true;
-            lblEvSahibiAd.Location = new Point(68, 34);
+            lblEvSahibiAd.BackColor = Color.Transparent;
+            lblEvSahibiAd.Location = new Point(297, 36);
             lblEvSahibiAd.Name = "lblEvSahibiAd";
             lblEvSahibiAd.Size = new Size(38, 15);
             lblEvSahibiAd.TabIndex = 2;
             lblEvSahibiAd.Text = "label1";
+            lblEvSahibiAd.Click += lblEvSahibiAd_Click;
             // 
             // lblDeplasmanAd
             // 
             lblDeplasmanAd.AutoSize = true;
-            lblDeplasmanAd.Location = new Point(430, 34);
+            lblDeplasmanAd.BackColor = Color.Transparent;
+            lblDeplasmanAd.Location = new Point(458, 36);
             lblDeplasmanAd.Name = "lblDeplasmanAd";
             lblDeplasmanAd.Size = new Size(38, 15);
             lblDeplasmanAd.TabIndex = 3;
@@ -79,7 +86,7 @@
             // 
             // btnOyna
             // 
-            btnOyna.Location = new Point(811, 531);
+            btnOyna.Location = new Point(740, 531);
             btnOyna.Name = "btnOyna";
             btnOyna.Size = new Size(150, 23);
             btnOyna.TabIndex = 4;
@@ -90,7 +97,9 @@
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new Point(699, 564);
+            label3.BackColor = Color.Transparent;
+            label3.ForeColor = SystemColors.ControlLightLight;
+            label3.Location = new Point(1052, 531);
             label3.Name = "label3";
             label3.Size = new Size(106, 15);
             label3.TabIndex = 5;
@@ -99,7 +108,8 @@
             // lblSkor
             // 
             lblSkor.AutoSize = true;
-            lblSkor.Location = new Point(257, 34);
+            lblSkor.BackColor = Color.Transparent;
+            lblSkor.Location = new Point(391, 34);
             lblSkor.Name = "lblSkor";
             lblSkor.Size = new Size(24, 15);
             lblSkor.TabIndex = 9;
@@ -108,7 +118,8 @@
             // lblDakika
             // 
             lblDakika.AutoSize = true;
-            lblDakika.Location = new Point(257, 59);
+            lblDakika.BackColor = Color.Transparent;
+            lblDakika.Location = new Point(391, 59);
             lblDakika.Name = "lblDakika";
             lblDakika.Size = new Size(33, 15);
             lblDakika.TabIndex = 10;
@@ -124,6 +135,7 @@
             listBox1.Name = "listBox1";
             listBox1.Size = new Size(221, 469);
             listBox1.TabIndex = 12;
+            listBox1.SelectedIndexChanged += listBox1_SelectedIndexChanged;
             // 
             // listBox2
             // 
@@ -142,7 +154,7 @@
             // 
             // btnHamle
             // 
-            btnHamle.Location = new Point(811, 560);
+            btnHamle.Location = new Point(1035, 550);
             btnHamle.Name = "btnHamle";
             btnHamle.Size = new Size(150, 23);
             btnHamle.TabIndex = 14;
@@ -152,7 +164,7 @@
             // 
             // btnAsistan
             // 
-            btnAsistan.Location = new Point(994, 560);
+            btnAsistan.Location = new Point(1035, 579);
             btnAsistan.Name = "btnAsistan";
             btnAsistan.Size = new Size(150, 23);
             btnAsistan.TabIndex = 15;
@@ -163,7 +175,7 @@
             // pnlRadar
             // 
             pnlRadar.BackColor = Color.DarkGreen;
-            pnlRadar.Location = new Point(68, 92);
+            pnlRadar.Location = new Point(68, 189);
             pnlRadar.Name = "pnlRadar";
             pnlRadar.Size = new Size(400, 250);
             pnlRadar.TabIndex = 16;
@@ -192,9 +204,9 @@
             // 
             // picGolLogo
             // 
-            picGolLogo.Location = new Point(3, 3);
+            picGolLogo.Location = new Point(0, 2);
             picGolLogo.Name = "picGolLogo";
-            picGolLogo.Size = new Size(245, 132);
+            picGolLogo.Size = new Size(249, 131);
             picGolLogo.TabIndex = 0;
             picGolLogo.TabStop = false;
             // 
@@ -202,12 +214,35 @@
             // 
             golEfektTimer.Interval = 300;
             // 
+            // pcbEvLogo2
+            // 
+            pcbEvLogo2.Location = new Point(186, 34);
+            pcbEvLogo2.Name = "pcbEvLogo2";
+            pcbEvLogo2.Size = new Size(90, 90);
+            pcbEvLogo2.SizeMode = PictureBoxSizeMode.AutoSize;
+            pcbEvLogo2.TabIndex = 18;
+            pcbEvLogo2.TabStop = false;
+            // 
+            // pcbDepLogo2
+            // 
+            pcbDepLogo2.Location = new Point(542, 34);
+            pcbDepLogo2.Name = "pcbDepLogo2";
+            pcbDepLogo2.Size = new Size(90, 90);
+            pcbDepLogo2.SizeMode = PictureBoxSizeMode.AutoSize;
+            pcbDepLogo2.TabIndex = 19;
+            pcbDepLogo2.TabStop = false;
+            pcbDepLogo2.Click += pcbDepLogo2_Click;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.MenuBar;
+            BackgroundImage = Properties.Resources.StadyumArkaplan;
+            BackgroundImageLayout = ImageLayout.Stretch;
             ClientSize = new Size(1197, 614);
+            Controls.Add(pcbDepLogo2);
+            Controls.Add(pcbEvLogo2);
             Controls.Add(pnlGolEfekti);
             Controls.Add(pnlRadar);
             Controls.Add(btnAsistan);
@@ -221,12 +256,15 @@
             Controls.Add(lblDeplasmanAd);
             Controls.Add(lblEvSahibiAd);
             Controls.Add(lstSpiker);
+            DoubleBuffered = true;
             Name = "Form1";
             Text = "Form1";
             Load += Form1_Load;
             pnlGolEfekti.ResumeLayout(false);
             pnlGolEfekti.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)picGolLogo).EndInit();
+            ((System.ComponentModel.ISupportInitialize)pcbEvLogo2).EndInit();
+            ((System.ComponentModel.ISupportInitialize)pcbDepLogo2).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -249,5 +287,7 @@
         private Label lblGolMesaji;
         private PictureBox picGolLogo;
         private System.Windows.Forms.Timer golEfektTimer;
+        private PictureBox pcbEvLogo2;
+        private PictureBox pcbDepLogo2;
     }
 }

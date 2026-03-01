@@ -8,7 +8,7 @@ using System.Windows.Forms;
 namespace Futbol
 {
     public partial class Form2 : Form
-    { 
+    {
         List<Takim> tumTakimlar = new List<Takim>();
 
         public Form2()
@@ -22,7 +22,7 @@ namespace Futbol
         }
 
         private void TakimlariGetir()
-        { 
+        {
             tumTakimlar = Veritabani.TumTakimlariGetir();
 
             cmbEvSahibi.Items.Clear();
@@ -38,11 +38,11 @@ namespace Futbol
         private void cmbEvSahibi_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (cmbEvSahibi.SelectedItem == null) return;
-             
+
             var secilen = tumTakimlar.FirstOrDefault(t => t.Isim == cmbEvSahibi.SelectedItem.ToString());
 
             if (secilen != null)
-            { 
+            {
                 if (!string.IsNullOrEmpty(secilen.LogoYolu) && System.IO.File.Exists(secilen.LogoYolu))
                 {
                     pcbEvLogo.ImageLocation = secilen.LogoYolu;
@@ -50,7 +50,7 @@ namespace Futbol
                 }
                 else
                 {
-                    pcbEvLogo.Image = null;  
+                    pcbEvLogo.Image = null;
                 }
             }
         }
@@ -82,7 +82,7 @@ namespace Futbol
                 MessageBox.Show("Lütfen her iki takımı da seçin!");
                 return;
             }
-             
+
             var ev = tumTakimlar.First(t => t.Isim == cmbEvSahibi.SelectedItem.ToString());
             var dep = tumTakimlar.First(t => t.Isim == cmbDeplasman.SelectedItem.ToString());
 
@@ -91,10 +91,15 @@ namespace Futbol
                 MessageBox.Show("Bir takım kendisiyle maç yapamaz!");
                 return;
             }
-             
+
             Form1 macEkrani = new Form1(ev.TakimID, ev.Isim, ev.Renk1, dep.TakimID, dep.Isim, dep.Renk1);
             macEkrani.Show();
             this.Hide();
+        }
+
+        private void pcbEvLogo_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

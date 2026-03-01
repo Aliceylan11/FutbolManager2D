@@ -92,6 +92,7 @@
             pcbEvLogo.Size = new Size(100, 80);
             pcbEvLogo.TabIndex = 5;
             pcbEvLogo.TabStop = false;
+            pcbEvLogo.Click += pcbEvLogo_Click;
             // 
             // pcbDepLogo
             // 

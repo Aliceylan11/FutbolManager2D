@@ -12,9 +12,9 @@ namespace Futbol
         {
             if (o == null) return "";
             string ikon = "";
-            if (o.KirmiziKartYediMi) ikon = " 🟥";
+            if (o.KirmiziKartYediMi) ikon = "KIRMIZI";
             else if (o.SakatMi) ikon = " 🚑";
-            else if (o.SariKartVarMi) ikon = " 🟨";
+            else if (o.SariKartVarMi) ikon = "SARI";
 
             return $"{o.isim}{ikon} (%{o.Kondisyon})";
         } 
@@ -204,11 +204,14 @@ namespace Futbol
                 gecisTimer.Interval = 2500;
                 gecisTimer.Tick += (s, args) => {
                     gecisTimer.Stop();
-                     
+
                     Form3 f3 = new Form3(lblSkor.Text, evSahibi.Isim, deplasman.Isim, evGoller, depGoller,
-                                         evIsabetliSut, depIsabetliSut, evIsabetliPas, depIsabetliPas,
-                                         evSari, evKirmizi, depSari, depKirmizi);  
-                    f3.Show(); this.Hide();
+                                         evToplamSut, evIsabetliSut, depToplamSut, depIsabetliSut,
+                                         evToplamPas, evIsabetliPas, depToplamPas, depIsabetliPas,
+                                         evSari, evKirmizi, depSari, depKirmizi,
+                                         evSahibi.LogoYolu, deplasman.LogoYolu);
+                    f3.Show();
+                    this.Hide();
                 };
                 gecisTimer.Start();
                 return;

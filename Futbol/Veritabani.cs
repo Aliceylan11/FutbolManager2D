@@ -45,6 +45,21 @@ namespace Futbol
             using (SqlConnection baglanti = new SqlConnection(connectionString))
             {
                 baglanti.Open();
+
+                string sorguTakim = "SELECT LogoYolu FROM Takimlar WHERE TakimID = @id";
+                using (SqlCommand komutTakim = new SqlCommand(sorguTakim, baglanti))
+                {
+                    komutTakim.Parameters.AddWithValue("@id", takimId);
+                    using (SqlDataReader okuTakim = komutTakim.ExecuteReader())
+                    {
+                        if (okuTakim.Read())
+                        {
+                            takim.LogoYolu = okuTakim["LogoYolu"]?.ToString();
+                        }
+                    }
+                }
+
+
                 string sorgu = "SELECT * FROM Oyuncular WHERE TakimID = @id";
 
                 using (SqlCommand komut = new SqlCommand(sorgu, baglanti))

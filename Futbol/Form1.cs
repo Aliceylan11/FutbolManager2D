@@ -10,7 +10,7 @@ namespace Futbol
     public enum HucumTipi { Santrafor, SagKanat, SolKanat }
 
     public partial class Form1 : Form
-    { 
+    {
         Takim evSahibi;
         Takim deplasman;
 
@@ -19,7 +19,7 @@ namespace Futbol
 
         int evSahibiGol = 0, deplasmanGol = 0;
         int dakika = 1, bitisDakikasi = 90;
-         
+
         bool topEvSahibindeMi = true;
 
         bool uzatmaVerildiMi = false, macBittiMi = false;
@@ -51,12 +51,25 @@ namespace Futbol
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            this.BackgroundImage = Properties.Resources.StadyumArkaplan;
+            this.BackgroundImageLayout = ImageLayout.Stretch;
             macTimer.Interval = 1500;
             TakimlariKur();
+            if (evSahibi != null && !string.IsNullOrEmpty(evSahibi.LogoYolu) && System.IO.File.Exists(evSahibi.LogoYolu))
+            {
+                pcbEvLogo2.ImageLocation = evSahibi.LogoYolu;
+                pcbEvLogo2.SizeMode = PictureBoxSizeMode.Zoom;
+            }
+
+            if (deplasman != null && !string.IsNullOrEmpty(deplasman.LogoYolu) && System.IO.File.Exists(deplasman.LogoYolu))
+            {
+                pcbDepLogo2.ImageLocation = deplasman.LogoYolu;
+                pcbDepLogo2.SizeMode = PictureBoxSizeMode.Zoom;
+            }
             TaktikselDizilisiAyarla();
             ArayuzuGuncelle();
 
-            lstSpiker.Items.Add("DEV DERBİ BAŞLIYOR! İki takıma da başarılar...");
+            lstSpiker.Items.Add("MAÇ BAŞLIYOR! İki takıma da başarılar...");
             lstSpiker.Items.Add($"{_evAd} ve {_depAd} sahaya çıkıyor!");
             lstSpiker.Items.Add("--------------------------------------------------");
 
@@ -80,7 +93,7 @@ namespace Futbol
             deplasman = Veritabani.TakimCek(_depId, _depAd);
         }
         private void pnlRadar_Paint(object sender, PaintEventArgs e)
-        { 
+        {
             SahaCizici.SahayiVeOyunculariCiz(
                 e.Graphics,
                 pnlRadar.Width, pnlRadar.Height,
@@ -90,7 +103,7 @@ namespace Futbol
             );
         }
 
-       
+
 
         private void btnOyna_Click(object sender, EventArgs e)
         {
@@ -133,18 +146,34 @@ namespace Futbol
         {
             macTimer.Stop();
 
+            // 1. PANELİ YENİDEN BOYUTLANDIR VE ORTALA
+            pnlGolEfekti.Size = new Size(255, 140); // Paneli yazının sığması için biraz genişletiyoruz
+                                                    // Paneli ekranın (veya sahanın) tam ortasına hizalama
+            pnlGolEfekti.Location = new Point((this.ClientSize.Width - pnlGolEfekti.Width) / 2, (this.ClientSize.Height - pnlGolEfekti.Height) / 2);
+
             pnlGolEfekti.Visible = true;
             pnlGolEfekti.BringToFront();
 
+            // 2. LOGO VE YAZIYI DÜZENLE (Logo solda, Yazı sağda)
+            picGolLogo.Size = new Size(80, 80);
+            picGolLogo.Location = new Point(10, 15);
+            picGolLogo.BackColor = Color.Transparent;
+
+            lblGolMesaji.Location = new Point(100, 20);
+            lblGolMesaji.BackColor = Color.Transparent;
+            lblGolMesaji.ForeColor = Color.White; // Yazının net okunması için beyaz yapıyoruz
+            lblGolMesaji.AutoSize = true;
+
+            // 3. TAKIM RENKLERİ VE METİNLER
             if (evSahibiMi)
             {
                 pnlGolEfekti.BackColor = Color.FromName(_evRenk);
                 if (evSahibiGol > deplasmanGol)
                     lblGolMesaji.Text = $"GOOOOOL! \n{_evAd} \nÖNE GEÇTİ!";
                 else if (evSahibiGol == deplasmanGol)
-                    lblGolMesaji.Text = $"GOOOOOL! \n{_evAd} \nEŞİTLİĞİ SAĞLADI!";
+                    lblGolMesaji.Text = $"GOOOOOL! \n{_evAd} \nBeraberlik Sağlandı!";
                 else
-                    lblGolMesaji.Text = $"GOOOOOL! \n{_evAd} \nFARKI AZALTTI!";
+                    lblGolMesaji.Text = $"GOOOOOL! \n{_evAd} \nFarkı Azalttı!";
 
                 if (System.IO.File.Exists(evSahibi.LogoYolu))
                     picGolLogo.ImageLocation = evSahibi.LogoYolu;
@@ -165,10 +194,10 @@ namespace Futbol
 
             picGolLogo.SizeMode = PictureBoxSizeMode.Zoom;
 
-            // YENİ: Timer'ı koda zorla bağlıyoruz ve 2 saniye (2000 ms) sonra kapanmasını emrediyoruz
-            golEfektTimer.Interval = 2000;
-            golEfektTimer.Tick -= golEfektTimer_Tick; // Çift tetiklemeyi önlemek için önce sil
-            golEfektTimer.Tick += golEfektTimer_Tick; // Ve bağla!
+            // 4. OTOMATİK KAPANMA SİSTEMİ
+            golEfektTimer.Interval = 2000; // 2 saniye ekranda kalır
+            golEfektTimer.Tick -= golEfektTimer_Tick; // Çift tetiklemeyi önlemek için sil
+            golEfektTimer.Tick += golEfektTimer_Tick; // Ve yeniden bağla
 
             golEfektTimer.Start();
         }
@@ -316,7 +345,7 @@ namespace Futbol
                 bool benimTakimimHucumda = (evSahibi.KadroIceriyorMu(o) && topEvSahibindeMi) || (deplasman.KadroIceriyorMu(o) && !topEvSahibindeMi);
 
                 // OYUNCULARIN TOPA DOĞRU YUKARI/AŞAĞI YÖNELMESİ (TAKTİĞİ BOZMADAN)
-                int yKayma = (hedefTopY - o.BaseY) / 4; 
+                int yKayma = (hedefTopY - o.BaseY) / 4;
                 if (topunYeri == SahaBolgesi.Korner)
                 {
                     if (o is Kaleci)
@@ -423,6 +452,26 @@ namespace Futbol
                     }
                 }
             }
+        }
+
+        private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void lblEvSahibiAd_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void pcbDepLogo2_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void pnlGolEfekti_Paint(object sender, PaintEventArgs e)
+        {
+
         }
     }
 }
